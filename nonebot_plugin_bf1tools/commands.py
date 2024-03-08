@@ -1,4 +1,5 @@
 import json
+import socket
 import sqlite3
 
 import httpx
@@ -7,9 +8,13 @@ from nonebot import get_plugin_config
 from nonebot import on_command
 from nonebot.adapters.onebot.v11 import Message, MessageSegment, GroupMessageEvent
 from nonebot.params import CommandArg
-
 from nonebot_plugin_bf1tools.config import Config
 from .config import databases
+from zhconv import convert
+
+SOCKET_IP = "127.0.0.1"
+SOCKET_RECVMSG_PORT = 52001
+SOCKET_SENDMSG_UDP_PORT = 51001
 
 plugin_config = get_plugin_config(Config)
 
@@ -49,25 +54,6 @@ async def checkdb():
         print("Error:", e)
     finally:
         # 关闭游标对象和数据库连接
-        cur.close()
-        conn.close()
-
-
-async def get_index(keyword):
-    conn = sqlite3.connect(databases)
-    try:
-        cur = conn.cursor()
-        cur.execute("SELECT id FROM keywords WHERE keywords=?", (keyword,))
-        result = cur.fetchone()
-        if result:
-            return result[0]
-        else:
-            return None
-
-    except sqlite3.Error as e:
-        print("Error:", e)
-        return False
-    finally:
         cur.close()
         conn.close()
 
@@ -216,3 +202,27 @@ async def score(event: GroupMessageEvent):
     msg.append(f"\n--------------------")
     msg.append(f"\n{timestamp}")
     await cmd_score.send(msg, reply_message=True)
+
+async def shouToGame(content):
+    if isinstance(content, str):
+        content = convert(content, 'zh-tw')
+        message = f"#Chat.Send#{content}".encode('utf-8')
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as send_socket:
+                send_socket.sendto(message, (SOCKET_IP, SOCKET_SENDMSG_UDP_PORT))
+        except Exception as e:
+            loguru.logger.error(e)
+        return
+
+
+shou2game = on_command('sendmsg', aliases={"喊话", "shout"})
+
+
+@shou2game.handle()
+async def sendmsg(event: GroupMessageEvent, args: Message = CommandArg()):
+    message = args.extract_plain_text()
+    sessionID = event.user_id
+    await shouToGame(content=message)
+    loguru.logger.info(f"[{sessionID}]发送了以下内容到服务器:{message}")
+    msg = Message([MessageSegment.text(f'已发送以下消息到服务器:\n{message}')])
+    await shou2game.send(msg, reply_message=True)

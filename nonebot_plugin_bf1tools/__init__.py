@@ -8,7 +8,7 @@ require('nonebot_plugin_localstore')
 import nonebot_plugin_localstore as store
 from nonebot.adapters.onebot.v11 import Adapter
 
-
+from .commands import cmd_score,addKeyword,removeKeyword,listKeyword,shou2game
 
 # from .chatmessage_socket import receiveChatMessageSocket
 from .config import Config
@@ -44,5 +44,5 @@ async def is_enable() -> bool:
 
 
 all = {
-    "score", "chatkw"
+    "shou2game", "cmd_score", "addKeyword", "removeKeyword", "listKeyword"
 }
