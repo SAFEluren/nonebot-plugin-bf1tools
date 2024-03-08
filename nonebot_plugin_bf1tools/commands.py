@@ -203,9 +203,9 @@ async def score(event: GroupMessageEvent):
     msg.append(f"\n{timestamp}")
     await cmd_score.send(msg, reply_message=True)
 
+
 async def shouToGame(content):
     if isinstance(content, str):
-        content = convert(content, 'zh-tw')
         message = f"#Chat.Send#{content}".encode('utf-8')
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as send_socket:
@@ -221,8 +221,9 @@ shou2game = on_command('sendmsg', aliases={"喊话", "shout"})
 @shou2game.handle()
 async def sendmsg(event: GroupMessageEvent, args: Message = CommandArg()):
     message = args.extract_plain_text()
+    message_conv = convert(f"[来自Q群]:{message}", 'zh-tw')
     sessionID = event.user_id
-    await shouToGame(content=message)
-    loguru.logger.info(f"[{sessionID}]发送了以下内容到服务器:{message}")
-    msg = Message([MessageSegment.text(f'已发送以下消息到服务器:\n{message}')])
-    await shou2game.send(msg, reply_message=True)
+    await shouToGame(content=message_conv)
+    loguru.logger.info(f"[{sessionID}]已尝试发送以下内容到服务器:{message_conv}")
+    msg = Message([MessageSegment.text(f'已尝试发送以下消息到服务器:\n{message_conv}')])
+    await shou2game.finish(msg)

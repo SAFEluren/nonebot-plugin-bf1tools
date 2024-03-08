@@ -1,11 +1,9 @@
 import socket
 import loguru
-
+from nonebot import on_command
 from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageSegment
 from nonebot.params import CommandArg
 from zhconv import convert
-
-from nonebot_plugin_bf1tools import shou2game
 
 SOCKET_IP = "127.0.0.1"
 SOCKET_RECVMSG_PORT = 52001
@@ -46,26 +44,3 @@ SOCKET_SENDMSG_UDP_PORT = 51001
 #         await conn.close()
 #
 
-
-async def shouToGame(content):
-    if isinstance(content, str):
-        content = convert(content, 'zh-tw')
-        message = f"#Chat.Send#{content}".encode('utf-8')
-        try:
-            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as send_socket:
-                send_socket.sendto(message, (SOCKET_IP, SOCKET_SENDMSG_UDP_PORT))
-        except Exception as e:
-            loguru.logger.error(e)
-        return
-
-
-
-
-@shou2game.handle()
-async def sendmsg(event: GroupMessageEvent, args: Message = CommandArg()):
-    message = args.extract_plain_text()
-    sessionID = event.user_id
-    await shouToGame(content=message)
-    loguru.logger.info(f"[{sessionID}]发送了以下内容到服务器:{message}")
-    msg = Message([MessageSegment.text(f'已发送以下消息到服务器:\n{message}')])
-    await shou2game.send(msg, reply_message=True)
