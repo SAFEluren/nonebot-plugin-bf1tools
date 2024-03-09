@@ -1,14 +1,6 @@
-import socket
-import loguru
-from nonebot import on_command
-from nonebot.adapters.onebot.v11 import GroupMessageEvent, Message, MessageSegment
-from nonebot.params import CommandArg
-from zhconv import convert
-
 SOCKET_IP = "127.0.0.1"
 SOCKET_RECVMSG_PORT = 52001
 SOCKET_SENDMSG_UDP_PORT = 51001
-
 
 #
 # async def process_message(message):
@@ -43,4 +35,3 @@ SOCKET_SENDMSG_UDP_PORT = 51001
 #         await cursor.close()
 #         await conn.close()
 #
-
